@@ -1,50 +1,42 @@
-// This constant should be changed to the localized text for "Follow" as displayed on Instagram
+// Customize these variables to suit your needs
+const MAX_FOLLOW_ARRAY_SIZE = 20; // Maximum number of follow buttons to click
+const MIN_FOLLOW_TIME = 1; // Minimum time to wait between follows (in seconds)
+const MAX_FOLLOW_TIME = 10; // Maximum time to wait between follows (in seconds)
+
+// DO NOT MODIFY THESE VARIABLES
 const FOLLOW_BUTTON_TEXT = "Follow";
-// Maximum number of attempts to follow a user
 const MAX_ATTEMPTS_PER_FOLLOW = 3;
 
-// This function tries to follow a random user from the given array of follow buttons
-// It returns true if it was successful in following a user, otherwise it returns false
 const followSomebody = async (followButtons) => {
   while (followButtons && followButtons.length > 0) {
     let attempts = 1;
-    // Get a random index from the followButtons array
     const targetIndex = Math.floor(Math.random() * followButtons.length);
-    // Get the follow button element at the target index
     const targetFollowButton = followButtons[targetIndex];
     console.log(`Trying to follow ${targetFollowButton.dataset.testid}...`);
     while (attempts <= MAX_ATTEMPTS_PER_FOLLOW) {
-      // Scroll the target button into view and click it
       targetFollowButton.scrollIntoView(true);
       targetFollowButton.click();
-      // Wait for half a second before checking if the button text has changed
       await new Promise((resolve) => setTimeout(resolve, 500));
-      // If the button text has changed, the user has been followed successfully
       if (targetFollowButton.textContent !== FOLLOW_BUTTON_TEXT) {
         console.log(`Successfully followed ${targetFollowButton.dataset.testid}!`);
         return true;
       }
       attempts++;
     }
-    // If all attempts have failed, remove the target button from the array and try again
     console.log(`Failed to follow ${targetFollowButton.dataset.testid} after ${attempts - 1} attempts.`);
     followButtons.splice(targetIndex, 1);
   }
   return false;
 };
 
-// This function returns a promise that resolves after the specified number of milliseconds
-const timeout = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const timeout = (ms) => new Promise((resolve) => setTimeout(resolve, ms * 1000));
 
-// This function returns a random timeout between 10 and 60 seconds
-const randomTimeout = () => Math.floor(Math.random() * 50 + 10) * 1000;
+const randomTimeout = () => Math.floor(Math.random() * (MAX_FOLLOW_TIME - MIN_FOLLOW_TIME + 1) + MIN_FOLLOW_TIME);
 
-// This function follows every user that has a follow button until it can't find any more
 const followEveryone = async () => {
-  // Get an array of follow button elements
   const followButtons = Array.from(document.querySelectorAll("button")).filter(
     (el) => el.textContent === `${FOLLOW_BUTTON_TEXT}`
-  );
+  ).slice(0, MAX_FOLLOW_ARRAY_SIZE);
   console.log(`Found ${followButtons.length} follow buttons.`);
   let shouldStop = false;
   let followedCount = 0;
@@ -57,12 +49,11 @@ const followEveryone = async () => {
     shouldStop = followButtons.length === 0;
     if (!shouldStop) {
       const followTimeout = randomTimeout();
-      console.log(`Next follow in ${followTimeout / 1000} seconds.`);
+      console.log(`Next follow in ${followTimeout} seconds.`);
       await timeout(followTimeout);
     }
   }
   console.log("You cannot follow anymore.");
 };
 
-// This line starts the follow process
 followEveryone();
